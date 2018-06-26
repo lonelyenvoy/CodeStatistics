@@ -1,7 +1,7 @@
 import annotations.Pure;
+import base.Functional;
 
 import java.io.File;
-import java.io.IOException;
 import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -19,16 +19,13 @@ public class Main {
 class Utils {
     @Pure
     static int countLines(String path, String[] fileExtensions) {
-        return traverseFolders(new File(path), Arrays.asList(fileExtensions)).stream().reduce(0, (sum, file) -> {
-            try {
-                return sum + Files.readAllLines(file.toPath()).size();
-            } catch (IOException e) {
-                throw new RuntimeException(e);
-            }
-        }, (a, b) -> a + b);
+        return traverseFolders(new File(path), Arrays.asList(fileExtensions)).stream().reduce(
+                0,
+                Functional.wrap((sum, file) -> sum + Files.readAllLines(file.toPath()).size()),
+                Integer::sum);
     }
 
-    static List<File> traverseFolders(File root, List<String> validExtensions) {
+    private static List<File> traverseFolders(File root, List<String> validExtensions) {
         List<File> files = new ArrayList<>();
         if (root.isFile() && validExtensions.stream().anyMatch(x -> root.getName().endsWith(x))) {
             files.add(root);
